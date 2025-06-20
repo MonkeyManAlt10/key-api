@@ -49,7 +49,9 @@ app.get('/generate-temp-url', (req, res) => {
   const id = crypto.randomBytes(4).toString('hex');
   const keyPageUrl = `/key-${id}`;
   tempLinks[keyPageUrl] = { createdAt: Date.now(), used: false };
-  res.json({ url: `https://key-api-37z4.onrender.com${keyPageUrl}` }); // Replace domain if different
+
+  // Auto-redirect to the temporary key page
+  res.redirect(keyPageUrl);
 });
 
 // Serve the temporary one-time-use key page
