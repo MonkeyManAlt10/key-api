@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <title>Key Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+    body {
+      background: #121212;
+      color: #0ff; /* bright cyan */
+      font-family: 'Orbitron', monospace, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      user-select: none;
+    }
+
+    h1 {
+      font-weight: 500;
+      text-shadow:
+        0 0 5px #0ff,
+        0 0 10px #0ff,
+        0 0 20px #0ff,
+        0 0 40px #00ffff88;
+      margin-bottom: 2rem;
+    }
+
+    #generateBtn {
+      background: transparent;
+      border: 3px solid #0ff;
+      color: #0ff;
+      font-size: 1.5rem;
+      padding: 1rem 3rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow:
+        0 0 10px #0ff,
+        0 0 20px #0ff,
+        0 0 40px #00ffff88;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    #generateBtn:hover {
+      background: #0ff;
+      color: #121212;
+      box-shadow:
+        0 0 20px #0ff,
+        0 0 40px #0ff,
+        0 0 80px #00ffffcc;
+    }
+
+    #key {
+      margin-top: 2rem;
+      font-size: 2rem;
+      letter-spacing: 0.2em;
+      padding: 1rem 2rem;
+      border: 2px solid #0ff;
+      border-radius: 8px;
+      box-shadow:
+        0 0 5px #0ff,
+        0 0 10px #0ff,
+        0 0 20px #00ffffaa;
+      user-select: text;
+      min-width: 300px;
+      text-align: center;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generate Your Access Key</h1>
+  <button id="generateBtn">Generate Key</button>
+  <div id="key"></div>
+
+  <script>
+    const btn = document.getElementById('generateBtn');
+    const keyDiv = document.getElementById('key');
+
+    btn.addEventListener('click', async () => {
+      keyDiv.textContent = 'Generating...';
+      try {
+        const res = await fetch('/api/generate-key');
+        const data = await res.json();
+        keyDiv.textContent = data.key || 'Error generating key.';
+      } catch (e) {
+        keyDiv.textContent = 'Failed to connect.';
+      }
+    });
+  </script>
+</body>
+</html>
