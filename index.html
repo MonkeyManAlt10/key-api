@@ -42,6 +42,7 @@
         0 0 20px #0ff,
         0 0 40px #00ffff88;
       transition: background 0.3s ease, color 0.3s ease;
+      margin-bottom: 1rem;
     }
 
     #generateBtn:hover {
@@ -54,7 +55,7 @@
     }
 
     #key {
-      margin-top: 2rem;
+      margin-top: 1rem;
       font-size: 2rem;
       letter-spacing: 0.2em;
       padding: 1rem 2rem;
@@ -69,25 +70,86 @@
       text-align: center;
       word-break: break-word;
     }
+
+    #copyBtn {
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      font-family: 'Orbitron', monospace, sans-serif;
+      font-size: 1.2rem;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow:
+        0 0 8px #0ff,
+        0 0 16px #0ff;
+      margin-top: 1rem;
+      display: none;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    #copyBtn:hover {
+      background: #0ff;
+      color: #121212;
+      box-shadow:
+        0 0 16px #0ff,
+        0 0 32px #0ff;
+    }
   </style>
 </head>
 <body>
   <h1>Generate Your Access Key</h1>
   <button id="generateBtn">Generate Key</button>
   <div id="key"></div>
+  <button id="copyBtn">Copy Key</button>
 
   <script>
-    const btn = document.getElementById('generateBtn');
+    const generateBtn = document.getElementById('generateBtn');
     const keyDiv = document.getElementById('key');
+    const copyBtn = document.getElementById('copyBtn');
 
-    btn.addEventListener('click', async () => {
+    generateBtn.addEventListener('click', async () => {
+      if (localStorage.getItem('generatedKey')) {
+        alert('You have already generated a key.');
+        keyDiv.textContent = localStorage.getItem('generatedKey');
+        copyBtn.style.display = 'inline-block';
+        return;
+      }
+
       keyDiv.textContent = 'Generating...';
       try {
         const res = await fetch('/api/generate-key');
         const data = await res.json();
-        keyDiv.textContent = data.key || 'Error generating key.';
+
+        if(data.key) {
+          keyDiv.textContent = data.key;
+          localStorage.setItem('generatedKey', data.key);
+          copyBtn.style.display = 'inline-block';
+        } else {
+          keyDiv.textContent = 'Error generating key.';
+          copyBtn.style.display = 'none';
+        }
       } catch (e) {
         keyDiv.textContent = 'Failed to connect.';
+        copyBtn.style.display = 'none';
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const key = keyDiv.textContent;
+      if (!key) return;
+
+      navigator.clipboard.writeText(key).then(() => {
+        alert('Key copied to clipboard!');
+      });
+    });
+
+    // On page load, if key was generated before, show it & copy button
+    window.addEventListener('load', () => {
+      const savedKey = localStorage.getItem('generatedKey');
+      if (savedKey) {
+        keyDiv.textContent = savedKey;
+        copyBtn.style.display = 'inline-block';
       }
     });
   </script>
