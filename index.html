@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Key Generator</title>
@@ -8,7 +8,7 @@
 
     body {
       background: #121212;
-      color: #0ff; /* bright cyan */
+      color: #0ff;
       font-family: 'Orbitron', monospace, sans-serif;
       display: flex;
       flex-direction: column;
@@ -108,10 +108,31 @@
     const keyDiv = document.getElementById('key');
     const copyBtn = document.getElementById('copyBtn');
 
+    const COOLDOWN_MINUTES = 55;
+    const KEY_STORAGE = 'sessionKey';
+    const TIME_STORAGE = 'sessionKeyTime';
+
+    function isCooldownActive() {
+      const savedTime = sessionStorage.getItem(TIME_STORAGE);
+      if (!savedTime) return false;
+      const now = Date.now();
+      const elapsed = (now - parseInt(savedTime)) / (1000 * 60); // in minutes
+      return elapsed < COOLDOWN_MINUTES;
+    }
+
+    function getRemainingMinutes() {
+      const savedTime = sessionStorage.getItem(TIME_STORAGE);
+      if (!savedTime) return 0;
+      const now = Date.now();
+      const elapsed = (now - parseInt(savedTime)) / (1000 * 60);
+      return Math.ceil(COOLDOWN_MINUTES - elapsed);
+    }
+
     generateBtn.addEventListener('click', async () => {
-      if (localStorage.getItem('generatedKey')) {
-        alert('You have already generated a key.');
-        keyDiv.textContent = localStorage.getItem('generatedKey');
+      if (isCooldownActive()) {
+        const remaining = getRemainingMinutes();
+        alert(`You must wait ${remaining} more minute(s) to generate a new key.`);
+        keyDiv.textContent = sessionStorage.getItem(KEY_STORAGE);
         copyBtn.style.display = 'inline-block';
         return;
       }
@@ -121,9 +142,10 @@
         const res = await fetch('/api/generate-key');
         const data = await res.json();
 
-        if(data.key) {
+        if (data.key) {
           keyDiv.textContent = data.key;
-          localStorage.setItem('generatedKey', data.key);
+          sessionStorage.setItem(KEY_STORAGE, data.key);
+          sessionStorage.setItem(TIME_STORAGE, Date.now().toString());
           copyBtn.style.display = 'inline-block';
         } else {
           keyDiv.textContent = 'Error generating key.';
@@ -138,18 +160,19 @@
     copyBtn.addEventListener('click', () => {
       const key = keyDiv.textContent;
       if (!key) return;
-
       navigator.clipboard.writeText(key).then(() => {
         alert('Key copied to clipboard!');
       });
     });
 
-    // On page load, if key was generated before, show it & copy button
+    // On load, show the key if it's still in cooldown
     window.addEventListener('load', () => {
-      const savedKey = localStorage.getItem('generatedKey');
-      if (savedKey) {
-        keyDiv.textContent = savedKey;
-        copyBtn.style.display = 'inline-block';
+      if (isCooldownActive()) {
+        const savedKey = sessionStorage.getItem(KEY_STORAGE);
+        if (savedKey) {
+          keyDiv.textContent = savedKey;
+          copyBtn.style.display = 'inline-block';
+        }
       }
     });
   </script>
